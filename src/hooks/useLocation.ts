@@ -125,6 +125,7 @@ export function useLocation() {
                 setCity(locationData.city);
                 setError((error) => error + " Using last known location.");
               } catch (e) {
+                console.log("error", e);
                 // If we can't parse saved data, we already have an error message set
               }
             }

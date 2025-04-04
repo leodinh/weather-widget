@@ -1,10 +1,11 @@
 import React from "react";
 import Humidity from "../assets/humidity";
+import { WeatherData } from "@/type";
 
 interface WeatherDetailsProps {
   isOpen: boolean;
   onClose: () => void;
-  data: any;
+  data: WeatherData;
   // city: string;
   // currentTime: string;
   // isNight: boolean;

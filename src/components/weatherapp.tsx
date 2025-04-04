@@ -1,20 +1,17 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Loading from "../assets/loading";
-import Humidity from "../assets/humidity";
 import "./weatherapp.css";
-import Image from "next/image";
-import { useTheme } from "next-themes";
 import WeatherDetails from "./WeatherDetails";
+import { WeatherData } from "@/type";
+const api_key = process.env.NEXT_PUBLIC_API_KEY;
+
 function Weatherapp({ city }: { city: string }) {
-  const { theme } = useTheme();
-  const isDarkMode = theme === "dark";
-  const [data, setData] = useState<any>({});
+  const [data, setData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState<string>("");
   const [isNight, setIsNight] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const api_key = process.env.NEXT_PUBLIC_API_KEY;
   // Add this function to check if it's night
   const checkIfNight = (
     currentTimestamp: number,
@@ -41,7 +38,8 @@ function Weatherapp({ city }: { city: string }) {
 
   useEffect(() => {
     const updateTime = () => {
-      if (data.timezone && data.sys) {
+      if (data?.timezone && data?.sys) {
+        // Use optional chaining
         // Get current UTC time
         const now = new Date();
 
@@ -84,7 +82,7 @@ function Weatherapp({ city }: { city: string }) {
 
     // Cleanup interval on unmount
     return () => clearInterval(interval);
-  }, [data.timezone, data.sys]);
+  }, [data?.timezone, data?.sys]); // Update dependencies with optional chaining
 
   const weatherImages: { [key: string]: string } = {
     Clear: isNight ? "starry" : "sunny",
@@ -97,7 +95,7 @@ function Weatherapp({ city }: { city: string }) {
     Thunderstorm: "stormy",
   };
 
-  const weatherImage = data.weather ? weatherImages[data.weather[0].main] : "";
+  const weatherImage = data?.weather ? weatherImages[data.weather[0].main] : "";
 
   const backgroundImages: { [key: string]: string } = {
     Clear: isNight
@@ -126,7 +124,7 @@ function Weatherapp({ city }: { city: string }) {
       : "linear-gradient(to right, #5bc8fb, #80eaff)",
   };
 
-  const backgroundImage = data.weather
+  const backgroundImage = data?.weather
     ? backgroundImages[data.weather[0].main]
     : backgroundImages.Clear;
 
@@ -176,15 +174,14 @@ function Weatherapp({ city }: { city: string }) {
                 <div className={`${weatherImage} top-[-20%] -z-10`} />
               )}
               <div className="text-(--text-color) text-[1.5rem]">
-                {data.weather ? data.weather[0].main : null}
+                {data.weather?.[0].main}
               </div>
               <div className="text-(--text-color) text-[2.5rem]">
-                {data.main ? `${Math.floor(data.main.temp)}°C` : null}
+                {data.main && `${Math.floor(data.main.temp)}°C`}
               </div>
               <div className="text-(--text-secondary-color) text-[1rem] text-center">
-                {data.main?.feels_like
-                  ? `Feels like ${Math.floor(data.main.feels_like)}°C`
-                  : null}
+                {data.main?.feels_like &&
+                  `Feels like ${Math.floor(data.main.feels_like)}°C`}
               </div>
               <div className="flex items-center justify-center text-(--text-color) rounded-full border bg-[#ffffff33] px-4 py-1 border-white/20 hover:bg-[#72727233] cursor-pointer mt-2">
                 <h2 className="text-[1rem]">{city}</h2>
@@ -206,36 +203,15 @@ function Weatherapp({ city }: { city: string }) {
         </div>
       </div>
 
-      <WeatherDetails
-        isOpen={isDetailsOpen}
-        onClose={() => setIsDetailsOpen(false)}
-        data={data}
-        // city={city}
-        // currentTime={currentTime}
-        // isNight={isNight}
-      />
+      {data && (
+        <WeatherDetails
+          isOpen={isDetailsOpen}
+          onClose={() => setIsDetailsOpen(false)}
+          data={data}
+        />
+      )}
     </div>
   );
 }
-
-interface ProgressBarProps {
-  backgroundImage: string;
-  value: number; // 0 to 100
-}
-
-const ProgressBar: React.FC<ProgressBarProps> = ({
-  backgroundImage,
-  value,
-}) => (
-  <div className="flex items-center w-full relative mt-5">
-    <span
-      className="flex text-(--text-color) px-4 py-2 rounded-full text-sm font-medium absolute"
-      style={{ width: `${value}%`, backgroundImage }}
-    >
-      <Humidity className="w-5 fill-(--text-color)" /> {value}
-    </span>
-    <div className="flex-1 h-2 bg-(--text-secondary-color) mx-2 rounded-2xl" />
-  </div>
-);
 
 export default Weatherapp;
