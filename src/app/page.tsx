@@ -1,13 +1,13 @@
 "use client";
 import Weatherapp from "@/components/weatherapp";
-import Location from "@/components/location";
-import { useState } from "react";
+// import ThemeToggle from "@/components/theme-toggle";
+import { useLocation } from "@/hooks/useLocation";
 export default function Home() {
-  const [city, setCity] = useState<string>("");
+  const { city } = useLocation();
   return (
     <div className="relative h-screen w-screen flex items-center justify-center">
-      <Location city={city} setCity={setCity} />
       <Weatherapp city={city} />
+      {/* <ThemeToggle /> */}
     </div>
   );
 }
