@@ -1,46 +1,39 @@
 import React from "react";
-import Humidity from "../assets/humidity";
+import { useTheme } from "./theme-provider";
 import { WeatherData } from "@/type";
 
 interface WeatherDetailsProps {
   isOpen: boolean;
   onClose: () => void;
   data: WeatherData;
-  // city: string;
-  // currentTime: string;
-  // isNight: boolean;
-}
-
+} 
+   
 const WeatherDetails: React.FC<WeatherDetailsProps> = ({
   isOpen,
   onClose,
   data,
-  // city,
-  // currentTime,
-  // isNight,
 }) => {
+  const { theme } = useTheme();
+  
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 bg-gray-900/50 backdrop-blur-[5px] flex items-center justify-center z-50"
+      className="fixed inset-0 backdrop-blur-[5px] flex items-center justify-center z-50 transition-colors duration-300"
+      style={{
+        backgroundColor: theme === "dark" ? "rgba(0,0,0,0.5)" : "rgba(128,128,128,0.5)",
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-96 relative border border-white/10 animate-fadeIn">
-        {/* <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-300 hover:text-white transition-colors"
-        >
-          ✕
-        </button>
-
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold mb-2 text-white">{city}</h2>
-          <p className="text-lg text-gray-200">{currentTime}</p>
-        </div> */}
-
+      <div
+        className={`backdrop-blur-xl p-8 rounded-2xl w-96 relative border animate-fadeIn transition-colors duration-300 ${
+          theme === "dark"
+            ? "bg-black/10 border-white/10 text-white"
+            : "bg-white/10 border-black/10 text-black"
+        }`}
+      >
         <div className="grid grid-cols-2 gap-4">
           <DetailCard
             title="Temperature"
@@ -56,7 +49,6 @@ const WeatherDetails: React.FC<WeatherDetailsProps> = ({
           <DetailCard
             title="Humidity"
             value={`${data.main?.humidity}%`}
-            icon={<Humidity className="w-5 fill-(--text-color)" />}
           />
           <DetailCard
             title="Wind"

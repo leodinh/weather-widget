@@ -4,11 +4,39 @@ import Loading from "../assets/loading";
 import "./weatherapp.css";
 import WeatherDetails from "./WeatherDetails";
 import { WeatherData } from "@/type";
-const api_key = process.env.NEXT_PUBLIC_API_KEY;
+import { useTheme } from "./theme-provider";
+const api_key = process.env.REACT_APP_WEATHER_API_KEY;
 
 function Weatherapp({ city }: { city: string }) {
   const [data, setData] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
+  useEffect(() => {
+    const fetchDefaultWeather = async (city: string) => {
+      try {
+        setLoading(true);
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=Metric&appid=${api_key}`;
+        
+        const res = await fetch(url);
+        
+        if (!res.ok) {
+          throw new Error(`Weather API error: ${res.status}`);
+        }
+
+        const defaultData = await res.json();
+        setData(defaultData);
+      } catch (error) {
+        console.error("Error fetching weather:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (city) {
+      fetchDefaultWeather(city);
+    }
+  }, [city]);
+
   const [currentTime, setCurrentTime] = useState<string>("");
   const [isNight, setIsNight] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -18,23 +46,6 @@ function Weatherapp({ city }: { city: string }) {
     sunrise: number,
     sunset: number
   ) => currentTimestamp < sunrise * 1000 || currentTimestamp > sunset * 1000;
-
-  useEffect(() => {
-    const fetchDefaultWeather = async (city: string) => {
-      setLoading(true);
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=Metric&appid=${api_key}`;
-      const res = await fetch(url);
-      const defaultData = await res.json();
-      console.log("defaultData", defaultData);
-
-      setData(defaultData);
-      setLoading(false);
-    };
-
-    if (city) {
-      fetchDefaultWeather(city);
-    }
-  }, [city]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -98,30 +109,46 @@ function Weatherapp({ city }: { city: string }) {
   const weatherImage = data?.weather ? weatherImages[data.weather[0].main] : "";
 
   const backgroundImages: { [key: string]: string } = {
-    Clear: isNight
-      ? "linear-gradient(to right, #0f0f1f, #0c172f)"
-      : "linear-gradient(to right, #f3b07c, #fcd283)",
-    Clouds: isNight
-      ? "linear-gradient(to right, #2c3e50, #3498db)"
-      : "linear-gradient(to right, #57d6d4, #71eeec)",
-    Rain: isNight
-      ? "linear-gradient(to right, #1f1f3a, #2c3e50)"
-      : "linear-gradient(to right, #5bc8fb, #80eaff)",
-    Snow: isNight
-      ? "linear-gradient(to right, #2c3e50, #34495e)"
-      : "linear-gradient(to right, #aff2ff, #fff)",
-    Haze: isNight
-      ? "linear-gradient(to right, #1a1a2e, #2c3e50)"
-      : "linear-gradient(to right, #57d6d4, #71eeec)",
-    Mist: isNight
-      ? "linear-gradient(to right, #1a1a2e, #2c3e50)"
-      : "linear-gradient(to right, #57d6d4, #71eeec)",
-    Drizzle: isNight
-      ? "linear-gradient(to right, #1f1f3a, #2c3e50)"
-      : "linear-gradient(to right, #5bc8fb, #80eaff)",
-    Thunderstorm: isNight
-      ? "linear-gradient(to right, #141428, #1a1a2e)"
-      : "linear-gradient(to right, #5bc8fb, #80eaff)",
+    Clear: theme === "dark" 
+      ? "linear-gradient(to right, #050510, #070b17)"  // Dark mode
+      : isNight
+        ? "linear-gradient(to right, #0f0f1f, #0c172f)"  // Natural night
+        : "linear-gradient(to right, #f3b07c, #fcd283)", // Day
+    Clouds: theme === "dark"
+      ? "linear-gradient(to right, #0d0d17, #161c26)"  // Dark mode
+      : isNight
+        ? "linear-gradient(to right, #2c3e50, #3498db)"  // Natural night
+        : "linear-gradient(to right, #57d6d4, #71eeec)", // Day
+    Rain: theme === "dark"
+      ? "linear-gradient(to right, #0a0a1f, #131824)"  // Dark mode
+      : isNight
+        ? "linear-gradient(to right, #1f1f3a, #2c3e50)"  // Natural night
+        : "linear-gradient(to right, #5bc8fb, #80eaff)", // Day
+    Snow: theme === "dark"
+      ? "linear-gradient(to right, #101520, #1a1f2a)"  // Dark mode
+      : isNight
+        ? "linear-gradient(to right, #2c3e50, #34495e)"  // Natural night
+        : "linear-gradient(to right, #aff2ff, #fff)",    // Day
+    Haze: theme === "dark"
+      ? "linear-gradient(to right, #0d0d17, #151b25)"  // Dark mode
+      : isNight
+        ? "linear-gradient(to right, #1a1a2e, #2c3e50)"  // Natural night
+        : "linear-gradient(to right, #57d6d4, #71eeec)", // Day
+    Mist: theme === "dark"
+      ? "linear-gradient(to right, #0d0d17, #151b25)"  // Dark mode
+      : isNight
+        ? "linear-gradient(to right, #1a1a2e, #2c3e50)"  // Natural night
+        : "linear-gradient(to right, #57d6d4, #71eeec)", // Day
+    Drizzle: theme === "dark"
+      ? "linear-gradient(to right, #0a0a1f, #131824)"  // Dark mode
+      : isNight
+        ? "linear-gradient(to right, #1f1f3a, #2c3e50)"  // Natural night
+        : "linear-gradient(to right, #5bc8fb, #80eaff)", // Day
+    Thunderstorm: theme === "dark"
+      ? "linear-gradient(to right, #080814, #0d0d17)"  // Dark mode
+      : isNight
+        ? "linear-gradient(to right, #141428, #1a1a2e)"  // Natural night
+        : "linear-gradient(to right, #5bc8fb, #80eaff)", // Day
   };
 
   const backgroundImage = data?.weather

@@ -1,4 +1,4 @@
-"use client";
+import { storage } from "../utils/storage";
 import { useState, useEffect } from "react";
 
 interface LocationData {
@@ -13,14 +13,41 @@ export function useLocation() {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
+  const requestGeolocation = async (): Promise<GeolocationPosition> => {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        resolve,
+        (error) => {
+          console.error("Geolocation error:", error);
+          if (error.code === error.PERMISSION_DENIED) {
+            reject(
+              new Error(
+                "Geolocation permission denied. Please enable location access in your browser settings."
+              )
+            );
+          } else if (error.code === error.TIMEOUT) {
+            reject(new Error("Location request timed out. Please try again."));
+          } else {
+            reject(new Error("Unable to get location. Please try again."));
+          }
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 60000,
+        }
+      );
+    });
+  };
+
   useEffect(() => {
-    // Try to get saved location data first
-    const tryUseSavedLocation = () => {
-      const savedLocation = localStorage.getItem("weatherAppLocation");
+    const tryUseSavedLocation = async () => {
+      const savedLocation = await storage.get("weatherAppLocation");
       if (savedLocation) {
         try {
-          const locationData: LocationData = JSON.parse(savedLocation);
-          // Check if the data is less than 24 hours old
+          const locationData: LocationData = JSON.parse(
+            savedLocation as string
+          );
           const ONE_DAY = 24 * 60 * 60 * 1000;
           if (Date.now() - locationData.timestamp < ONE_DAY) {
             console.log("Using saved location data:", locationData);
@@ -30,119 +57,82 @@ export function useLocation() {
           }
         } catch (e) {
           console.error("Error parsing saved location:", e);
-          localStorage.removeItem("weatherAppLocation"); // Clear invalid data
+          await storage.remove("weatherAppLocation");
         }
       }
       return false;
     };
 
-    const fetchCityFromCoordinates = (latitude: number, longitude: number) => {
+    const fetchCityFromCoordinates = async (
+      latitude: number,
+      longitude: number
+    ) => {
       console.log("Fetching city from coordinates:", latitude, longitude);
-      // Call the reverse geocoding API
-      fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          // Extract city information
-          const city =
-            data.address.city ||
-            data.address.town ||
-            data.address.village ||
-            data.address.hamlet ||
-            data.address.county ||
-            "Unknown location";
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
+        );
 
-          console.log("City:", city);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
 
-          const locationData: LocationData = {
-            latitude,
-            longitude,
-            timestamp: Date.now(),
-            city,
-          };
+        const data = await response.json();
+        const city =
+          data.address.city ||
+          data.address.town ||
+          data.address.village ||
+          data.address.hamlet ||
+          data.address.county ||
+          "Unknown location";
 
-          localStorage.setItem(
-            "weatherAppLocation",
-            JSON.stringify(locationData)
-          );
-          console.log("Saved new location to localStorage", locationData);
-          setCity(city);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error getting location name:", error);
-          setError("Could not determine your city. Please try again later.");
-          setLoading(false);
-        });
+        const locationData: LocationData = {
+          latitude,
+          longitude,
+          timestamp: Date.now(),
+          city,
+        };
+
+        await storage.set("weatherAppLocation", JSON.stringify(locationData));
+        setCity(city);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error getting location name:", error);
+        setError("Could not determine your city. Please try again later.");
+        setLoading(false);
+      }
     };
 
-    // If we couldn't use saved location, try to get current location
-    if (!tryUseSavedLocation()) {
-      if (navigator && navigator.geolocation) {
-        // Increase timeout to give more time for location acquisition
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            console.log("Got position:", position.coords);
-            const { latitude, longitude } = position.coords;
-            fetchCityFromCoordinates(latitude, longitude);
-          },
-          (error) => {
-            console.error("Geolocation error:", error);
-            setLoading(false);
+    const init = async () => {
+      const hasSavedLocation = await tryUseSavedLocation();
+      if (!hasSavedLocation) {
+        try {
+          const position = await requestGeolocation();
+          const { latitude, longitude } = position.coords;
+          await fetchCityFromCoordinates(latitude, longitude);
+        } catch (error: any) {
+          console.error("Geolocation error:", error);
+          setLoading(false);
+          setError(error.message);
 
-            // Handle specific error codes
-            switch (error.code) {
-              case error.PERMISSION_DENIED:
-                setError(
-                  "Location access was denied. Please enable location services for this website."
-                );
-                break;
-              case error.POSITION_UNAVAILABLE:
-                setError(
-                  "Location information is unavailable. Please try again later."
-                );
-                break;
-              case error.TIMEOUT:
-                setError(
-                  "Location request timed out. Please check your connection and try again."
-                );
-                break;
-              default:
-                setError(`Error getting your location: ${error.message}`);
-            }
-
-            // Try to use saved location as fallback even if it's older than 24 hours
-            const savedLocation = localStorage.getItem("weatherAppLocation");
+          // Try to use saved location as fallback
+          try {
+            const savedLocation = await storage.get("weatherAppLocation");
             if (savedLocation) {
-              try {
-                const locationData: LocationData = JSON.parse(savedLocation);
-                setCity(locationData.city);
-                setError((error) => error + " Using last known location.");
-              } catch (e) {
-                console.log("error", e);
-                // If we can't parse saved data, we already have an error message set
-              }
+              const locationData = JSON.parse(savedLocation as string);
+              setCity(locationData.city);
+              setError(
+                (prevError) => prevError + " Using last known location."
+              );
             }
-          },
-          {
-            enableHighAccuracy: false, // Set to false to improve success rate
-            timeout: 10000, // Increase timeout to 10 seconds
-            maximumAge: 60000, // Accept positions up to 1 minute old
+          } catch (e) {
+            console.error("Error reading saved location:", e);
           }
-        );
-      } else {
-        setLoading(false);
-        setError(
-          "Geolocation is not supported by your browser. Please try a different browser."
-        );
+        }
       }
-    }
+    };
+
+    init();
   }, []);
 
   return { city, loading, error };

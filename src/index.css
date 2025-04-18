@@ -1,5 +1,6 @@
-@import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 :root {
   --background: #ffffff;
@@ -17,21 +18,19 @@
   --text-secondary-color: #9895b3;
   --text-third-color: #b6b5d1;
   --card-bg: rgba(0, 0, 0, 0.5);
-  filter: invert(1) hue-rotate(180deg);
-  -webkit-filter: invert(1) hue-rotate(180deg);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-lilita-one);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-lilita-one);
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
+}
+
+/* Add this to ensure smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }

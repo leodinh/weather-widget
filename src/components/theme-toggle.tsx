@@ -1,21 +1,28 @@
 "use client";
-import { useTheme } from "next-themes";
+import { storage } from "../utils/storage";
+import { useTheme } from "./theme-provider";
 
 export default function ThemeToggle() {
-  const { setTheme, theme } = useTheme();
-
-  const toggleDarkMode = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
-  const isDarkMode = theme === "dark";
+  const { theme, setTheme } = useTheme();
 
   return (
     <button
-      onClick={toggleDarkMode}
-      className="bg-[rgba(255, 255, 255, 0.1)] fixed top-4 right-4 p-2 rounded-full bg-opacity-20 backdrop-blur-sm transition-colors"
+      onClick={() => {
+        setTheme(theme === "dark" ? "light" : "dark");
+        storage.set(
+          "darkMode",
+          JSON.stringify({ theme: theme === "dark" ? "light" : "dark" })
+        );
+      }}
+      className={`fixed top-4 right-4 p-3 transition-all duration-300 text-lg hover:scale-110 z-50`}
+      title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
-      {isDarkMode ? "🌙" : "☀️"}
+      <div
+        className={`cursor-pointer transition-all duration-300 ${theme === "dark" ? "brightness-0.4 opacity-60" : "brightness-100 opacity-100"}`}
+        id="bulb"
+      >
+        💡
+      </div>
     </button>
   );
 }
