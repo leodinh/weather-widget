@@ -5,6 +5,8 @@ import "./weatherapp.css";
 import WeatherDetails from "./WeatherDetails";
 import { WeatherData } from "@/type";
 import { useTheme } from "./theme-provider";
+import SearchBar from "./SearchBar";
+import SocialShortcuts from "./SocialShortcuts";
 const api_key = process.env.REACT_APP_WEATHER_API_KEY;
 
 function Weatherapp({ city }: { city: string }) {
@@ -16,9 +18,9 @@ function Weatherapp({ city }: { city: string }) {
       try {
         setLoading(true);
         const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=Metric&appid=${api_key}`;
-        
+
         const res = await fetch(url);
-        
+
         if (!res.ok) {
           throw new Error(`Weather API error: ${res.status}`);
         }
@@ -109,46 +111,54 @@ function Weatherapp({ city }: { city: string }) {
   const weatherImage = data?.weather ? weatherImages[data.weather[0].main] : "";
 
   const backgroundImages: { [key: string]: string } = {
-    Clear: theme === "dark" 
-      ? "linear-gradient(to right, #050510, #070b17)"  // Dark mode
-      : isNight
-        ? "linear-gradient(to right, #0f0f1f, #0c172f)"  // Natural night
-        : "linear-gradient(to right, #f3b07c, #fcd283)", // Day
-    Clouds: theme === "dark"
-      ? "linear-gradient(to right, #0d0d17, #161c26)"  // Dark mode
-      : isNight
-        ? "linear-gradient(to right, #2c3e50, #3498db)"  // Natural night
-        : "linear-gradient(to right, #57d6d4, #71eeec)", // Day
-    Rain: theme === "dark"
-      ? "linear-gradient(to right, #0a0a1f, #131824)"  // Dark mode
-      : isNight
-        ? "linear-gradient(to right, #1f1f3a, #2c3e50)"  // Natural night
-        : "linear-gradient(to right, #5bc8fb, #80eaff)", // Day
-    Snow: theme === "dark"
-      ? "linear-gradient(to right, #101520, #1a1f2a)"  // Dark mode
-      : isNight
-        ? "linear-gradient(to right, #2c3e50, #34495e)"  // Natural night
-        : "linear-gradient(to right, #aff2ff, #fff)",    // Day
-    Haze: theme === "dark"
-      ? "linear-gradient(to right, #0d0d17, #151b25)"  // Dark mode
-      : isNight
-        ? "linear-gradient(to right, #1a1a2e, #2c3e50)"  // Natural night
-        : "linear-gradient(to right, #57d6d4, #71eeec)", // Day
-    Mist: theme === "dark"
-      ? "linear-gradient(to right, #0d0d17, #151b25)"  // Dark mode
-      : isNight
-        ? "linear-gradient(to right, #1a1a2e, #2c3e50)"  // Natural night
-        : "linear-gradient(to right, #57d6d4, #71eeec)", // Day
-    Drizzle: theme === "dark"
-      ? "linear-gradient(to right, #0a0a1f, #131824)"  // Dark mode
-      : isNight
-        ? "linear-gradient(to right, #1f1f3a, #2c3e50)"  // Natural night
-        : "linear-gradient(to right, #5bc8fb, #80eaff)", // Day
-    Thunderstorm: theme === "dark"
-      ? "linear-gradient(to right, #080814, #0d0d17)"  // Dark mode
-      : isNight
-        ? "linear-gradient(to right, #141428, #1a1a2e)"  // Natural night
-        : "linear-gradient(to right, #5bc8fb, #80eaff)", // Day
+    Clear:
+      theme === "dark"
+        ? "linear-gradient(to right, #9b5c1f, #b57726)" // Dark mode
+        : isNight
+          ? "linear-gradient(to right, #0f0f1f, #0c172f)" // Natural night
+          : "linear-gradient(to right, #f3b07c, #fcd283)", // Day
+    Clouds:
+      theme === "dark"
+        ? "linear-gradient(to right, #157c7a, #1aa2a0)" // Dark mode
+        : isNight
+          ? "linear-gradient(to right, #2c3e50, #3498db)" // Natural night
+          : "linear-gradient(to right, #57d6d4, #71eeec)", // Day
+    Rain:
+      theme === "dark"
+        ? "linear-gradient(to right, #216b87, #2c9ab3)" // Dark mode
+        : isNight
+          ? "linear-gradient(to right, #1f1f3a, #2c3e50)" // Natural night
+          : "linear-gradient(to right, #5bc8fb, #80eaff)", // Day
+    Snow:
+      theme === "dark"
+        ? "linear-gradient(to right, #7fc8d6, #dfeef2)" // Dark mode
+        : isNight
+          ? "linear-gradient(to right, #2c3e50, #34495e)" // Natural night
+          : "linear-gradient(to right, #aff2ff, #fff)", // Day
+    Haze:
+      theme === "dark"
+        ? "linear-gradient(to right, #157c7a, #1aa2a0)" // Dark mode
+        : isNight
+          ? "linear-gradient(to right, #1a1a2e, #2c3e50)" // Natural night
+          : "linear-gradient(to right, #57d6d4, #71eeec)", // Day
+    Mist:
+      theme === "dark"
+        ? "linear-gradient(to right, #157c7a, #1aa2a0)" // Dark mode
+        : isNight
+          ? "linear-gradient(to right, #1a1a2e, #2c3e50)" // Natural night
+          : "linear-gradient(to right, #57d6d4, #71eeec)", // Day
+    Drizzle:
+      theme === "dark"
+        ? "linear-gradient(to right, #216b87, #2c9ab3)" // Dark mode
+        : isNight
+          ? "linear-gradient(to right, #1f1f3a, #2c3e50)" // Natural night
+          : "linear-gradient(to right, #5bc8fb, #80eaff)", // Day
+    Thunderstorm:
+      theme === "dark"
+        ? "linear-gradient(to right, #143b53, #24596e)" // Dark mode
+        : isNight
+          ? "linear-gradient(to right, #141428, #1a1a2e)" // Natural night
+          : "linear-gradient(to right, #5bc8fb, #80eaff)", // Day
   };
 
   const backgroundImage = data?.weather
@@ -179,7 +189,10 @@ function Weatherapp({ city }: { city: string }) {
   const dayOfMonth = currentDate.getDate();
 
   const formattedDate = `${dayOfWeek}, ${dayOfMonth} ${month}`;
-  console.log("currentTime", currentTime);
+
+  const onSearch = (query: string) => {
+    window.open(`https://www.google.com/search?q=${query}`, "_blank");
+  };
   return (
     <div
       className="bg-white w-full h-full flex justify-center items-center overflow-hidden"
@@ -224,9 +237,13 @@ function Weatherapp({ city }: { city: string }) {
             </>
           )}
         </div>
-        <div className="text-(--text-color) text-[2rem] text-center">
-          <p>{formattedDate}</p>
-          <p className="mt-2">{currentTime}</p>
+        <div className="flex flex-col gap-4">
+          <div className="text-(--text-color) text-[2rem] text-center">
+            <p>{formattedDate}</p>
+            <p className="mt-2">{currentTime}</p>
+            <SearchBar onSearch={onSearch} />
+            <SocialShortcuts />
+          </div>
         </div>
       </div>
 
