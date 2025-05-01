@@ -21,12 +21,12 @@ interface ThemeProviderProps {
 
 export default function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>("system");
-
   useEffect(() => {
     const init = async () => {
       const darkMode = await storage.get("darkMode");
       if (darkMode) {
-        setTheme(darkMode as Theme);
+        const parsedDarkMode = JSON.parse(darkMode as string);
+        setTheme(parsedDarkMode.theme);
       }
     };
     init();

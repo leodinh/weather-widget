@@ -13,6 +13,7 @@ function Weatherapp({ city }: { city: string }) {
   const [data, setData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
+
   useEffect(() => {
     const fetchDefaultWeather = async (city: string) => {
       try {
@@ -193,6 +194,117 @@ function Weatherapp({ city }: { city: string }) {
   const onSearch = (query: string) => {
     window.open(`https://www.google.com/search?q=${query}`, "_blank");
   };
+
+  const updateFaviconColor = (weatherCondition: string) => {
+    const favicon = document.querySelector(
+      'link[rel="icon"]'
+    ) as HTMLLinkElement;
+    if (!favicon) return;
+
+    // Create a canvas to draw the new favicon
+    const canvas = document.createElement("canvas");
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Get background color based on weather condition and theme
+    let bgColor;
+
+    switch (weatherCondition) {
+      case "Clear":
+        bgColor =
+          theme === "dark"
+            ? "#9b5c1f" // Dark mode
+            : isNight
+              ? "#0f0f1f" // Natural night
+              : "#f3b07c"; // Day
+        break;
+      case "Clouds":
+        bgColor =
+          theme === "dark"
+            ? "#157c7a" // Dark mode
+            : isNight
+              ? "#2c3e50" // Natural night
+              : "#57d6d4"; // Day
+        break;
+      case "Rain":
+      case "Drizzle":
+        bgColor =
+          theme === "dark"
+            ? "#216b87" // Dark mode
+            : isNight
+              ? "#1f1f3a" // Natural night
+              : "#5bc8fb"; // Day
+        break;
+      case "Snow":
+        bgColor =
+          theme === "dark"
+            ? "#7fc8d6" // Dark mode
+            : isNight
+              ? "#2c3e50" // Natural night
+              : "#aff2ff"; // Day
+        break;
+      case "Thunderstorm":
+        bgColor =
+          theme === "dark"
+            ? "#143b53" // Dark mode
+            : isNight
+              ? "#141428" // Natural night
+              : "#5bc8fb"; // Day
+        break;
+      case "Haze":
+      case "Mist":
+        bgColor =
+          theme === "dark"
+            ? "#157c7a" // Dark mode
+            : isNight
+              ? "#1a1a2e" // Natural night
+              : "#57d6d4"; // Day
+        break;
+      default:
+        bgColor = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    // Draw a filled circle with the weather color
+    ctx.beginPath();
+    ctx.arc(16, 16, 16, 0, 2 * Math.PI);
+    ctx.fillStyle = bgColor;
+    ctx.fill();
+
+    // Draw a simple weather icon in the center (white or black based on background)
+    const isDarkBg = isColorDark(bgColor);
+    ctx.fillStyle = isDarkBg ? "#ffffff" : "#000000";
+
+    // Simple weather icon (just a circle for simplicity)
+    ctx.beginPath();
+    ctx.arc(16, 16, 8, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Update the favicon with the new image
+    favicon.href = canvas.toDataURL("image/png");
+  };
+
+  // Helper function to determine if a color is dark
+  const isColorDark = (color: string): boolean => {
+    // Convert hex to RGB
+    const hex = color.replace("#", "");
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+
+    // Calculate brightness (YIQ formula)
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness < 128; // If less than 128, color is dark
+  };
+
+  // Add this effect to update favicon when weather data changes
+  useEffect(() => {
+    if (data?.weather) {
+      updateFaviconColor(data.weather[0].main);
+    }
+  }, [data, theme, isNight]);
+
   return (
     <div
       className="bg-white w-full h-full flex justify-center items-center overflow-hidden"
@@ -226,14 +338,6 @@ function Weatherapp({ city }: { city: string }) {
               <div className="flex items-center justify-center text-(--text-color) rounded-full border bg-[#ffffff33] px-4 py-1 border-white/20 hover:bg-[#72727233] cursor-pointer mt-2">
                 <h2 className="text-[1rem]">{city}</h2>
               </div>
-              {/* <ProgressBar
-                backgroundImage={
-                  backgroundImage && backgroundImage.replace
-                    ? backgroundImage.replace("to right", "to top")
-                    : ""
-                }
-                value={data.main?.humidity ? data.main.humidity : 0}
-              /> */}
             </>
           )}
         </div>

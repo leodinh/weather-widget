@@ -144,7 +144,8 @@
   display: block;
   height: 50px;
   width: 50px;
-  margin-left: -10px;
+  margin-left: -5px;
+  left: 30%;
   position: absolute;
 }
 .rainy:after {
