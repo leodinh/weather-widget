@@ -17,6 +17,12 @@
 4. Build the extension: `npm run build:extension`
 5. Load the extension in Chrome: Go to `chrome://extensions/`, enable "Developer mode", and click "Load unpacked". Select the `build` folder.
 
+## 🌐 Live Demo
+
+You can see a live demo of this extension at: https://leodinh.github.io/new-tab-extension
+
+Note: The live demo is a web version of the extension. To use it as a Chrome extension, follow the installation guide below.
+
 ## 📝 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
