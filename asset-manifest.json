@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/new-tab-extension/static/css/main.5b7717f8.css",
+    "main.js": "/new-tab-extension/static/js/main.5410b4e2.js",
+    "index.html": "/new-tab-extension/index.html",
+    "main.5b7717f8.css.map": "/new-tab-extension/static/css/main.5b7717f8.css.map",
+    "main.5410b4e2.js.map": "/new-tab-extension/static/js/main.5410b4e2.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5b7717f8.css",
+    "static/js/main.5410b4e2.js"
+  ]
+}
